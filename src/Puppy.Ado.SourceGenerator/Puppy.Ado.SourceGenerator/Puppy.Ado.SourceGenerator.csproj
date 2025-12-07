@@ -1,11 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <!-- adapted from https://andrewlock.net/creating-a-source-generator-part-1-creating-an-incremental-source-generator/ -->
     <PropertyGroup>
-        <ImplicitUsings>enable</ImplicitUsings>
+<!--        <ImplicitUsings>enable</ImplicitUsings>-->
         <Nullable>enable</Nullable>
-        <TargetFramework>net10.0</TargetFramework>
+<!--        <TargetFramework>net10.0</TargetFramework>-->
+        <TargetFramework>netstandard2.0</TargetFramework>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-        <LangVersion>latest</LangVersion>
+        <LangVersion>9.0</LangVersion>
+<!--        <LangVersion>latest</LangVersion>-->
         <!-- 👇 We don't want to reference the source generator dll directly in consuming projects -->
         <IncludeBuildOutput>false</IncludeBuildOutput>
     </PropertyGroup>

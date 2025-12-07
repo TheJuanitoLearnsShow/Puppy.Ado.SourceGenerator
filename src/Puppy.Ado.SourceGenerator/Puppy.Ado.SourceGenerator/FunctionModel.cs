@@ -1,4 +1,7 @@
-﻿namespace Puppy.Ado.SourceGenerator
+﻿using System;
+using System.Collections.Generic;
+
+namespace Puppy.Ado.SourceGenerator
 {
     public sealed class FunctionModel
     {

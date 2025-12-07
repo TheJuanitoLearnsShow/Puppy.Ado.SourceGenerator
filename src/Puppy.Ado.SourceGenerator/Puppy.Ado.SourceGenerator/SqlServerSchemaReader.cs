@@ -1,5 +1,14 @@
-﻿using System.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+// C#
+namespace System.Runtime.CompilerServices
+{
+    // Minimal shim for C# 9 init-only setters when targeting older TFMs
+}
 
 namespace Puppy.Ado.SourceGenerator
 {
