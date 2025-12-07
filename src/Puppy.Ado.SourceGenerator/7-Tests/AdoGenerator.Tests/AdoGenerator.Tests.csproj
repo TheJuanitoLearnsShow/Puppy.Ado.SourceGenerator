@@ -18,4 +18,8 @@
         <Using Include="Xunit"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\Puppy.Ado.SourceGenerator\Puppy.Ado.SourceGenerator.csproj" />
+    </ItemGroup>
+
 </Project>
