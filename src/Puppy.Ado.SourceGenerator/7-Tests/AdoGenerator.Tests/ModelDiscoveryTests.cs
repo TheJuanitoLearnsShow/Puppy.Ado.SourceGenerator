@@ -2,7 +2,7 @@
 
 namespace AdoGenerator.Tests;
 
-public class UnitTest1
+public class ModelDiscoveryTests
 {
     private const string ConnectionName = "AdoGenerator_SampleDb";
     private static string GetConnectionString()

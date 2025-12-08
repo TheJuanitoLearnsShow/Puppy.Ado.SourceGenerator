@@ -128,12 +128,11 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
         private static async Task<IReadOnlyList<ParameterModel>> ReadParametersAsync(SqlConnection conn, string schema, string name, CancellationToken ct)
         {
             const string paramSql = @"
-SELECT PARAMETER_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE,
-       PARAMETER_MODE, IS_RESULT, USER_DEFINED_TYPE_SCHEMA = TYPE_SCHEMA_NAME(user_defined_type_schema_id),
-       USER_DEFINED_TYPE_NAME = TYPE_NAME(user_defined_type_id)
-FROM INFORMATION_SCHEMA.PARAMETERS
-WHERE SPECIFIC_SCHEMA = @schema AND SPECIFIC_NAME = @name
-ORDER BY ORDINAL_POSITION";
+        SELECT PARAMETER_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE,
+               PARAMETER_MODE, IS_RESULT, USER_DEFINED_TYPE_SCHEMA, USER_DEFINED_TYPE_NAME
+        FROM INFORMATION_SCHEMA.PARAMETERS
+        WHERE SPECIFIC_SCHEMA = @schema AND SPECIFIC_NAME = @name
+        ORDER BY ORDINAL_POSITION";
 
             using var cmd = new SqlCommand(paramSql, conn);
             cmd.Parameters.AddWithValue("@schema", schema);
@@ -163,7 +162,7 @@ ORDER BY ORDINAL_POSITION";
                         ? SqlType.Structured($"[{udtSchema}].[{udtName}]")
                         : MapSqlType(dataType, len, prec, scale),
                     IsOutput = isOutput,
-                    IsNullable = false, // SQL parameters are typically non-nullable; adjust via overrides if needed
+                    IsNullable = false,
                     IsTableValued = isStructured,
                     TableTypeFullName = isStructured && udtSchema is not null && udtName is not null ? $"[{udtSchema}].[{udtName}]" : null
                 });
@@ -171,6 +170,7 @@ ORDER BY ORDINAL_POSITION";
 
             return list;
         }
+
 
         private static async Task<IReadOnlyList<ResultSetModel>> DescribeResultSetsAsync(SqlConnection conn, string schema, string name, CancellationToken ct)
         {
@@ -188,9 +188,9 @@ ORDER BY ORDINAL_POSITION";
             int ordinal = 0;
             while (await reader.ReadAsync(ct).ConfigureAwait(false))
             {
-                var colName = reader.IsDBNull(0) ? $"Column{ordinal}" : reader.GetString(0);
-                var sysTypeName = reader.GetString(7); // system_type_name
-                var isNullable = reader.GetBoolean(10);
+                var colName = reader.IsDBNull(2) ? $"Column{ordinal}" : reader.GetString(2);
+                var sysTypeName = reader.GetString(5); // system_type_name
+                var isNullable = reader.GetBoolean(3);
 
                 cols.Add(new ResultColumnModel
                 {
