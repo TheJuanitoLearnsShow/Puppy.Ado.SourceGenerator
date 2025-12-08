@@ -36,7 +36,7 @@ namespace Puppy.Ado.SourceGenerator
             });
         }
 
-        private static string EmitView(ViewModel v)
+        public static string EmitView(ViewModel v)
         {
             var dtoName = $"{v.ClrName}_Row";
             var props = string.Join("\n", v.Columns.Select(c =>
@@ -90,7 +90,7 @@ public static partial class {v.ClrName}_ViewClient
 }}";
         }
 
-        private static string EmitProcedure(StoredProcedureModel p)
+        public static string EmitProcedure(StoredProcedureModel p)
         {
             var inputDtoName = $"{p.ClrName}_Input";
             var outputDtoName = $"{p.ClrName}_Row";
@@ -192,7 +192,7 @@ public static partial class {p.ClrName}_ProcClient
 }}";
         }
 
-        private static string EmitFunction(FunctionModel f)
+        public static string EmitFunction(FunctionModel f)
         {
             if (f.IsTableValued)
             {

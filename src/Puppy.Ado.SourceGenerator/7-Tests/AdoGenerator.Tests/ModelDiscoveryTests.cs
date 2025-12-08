@@ -17,5 +17,10 @@ public class ModelDiscoveryTests
         var reader = new SqlServerSchemaReader(connStr);
         var model = await reader.ReadAsync();
         Assert.NotNull(model);
+        Assert.NotEmpty(model.StoredProcedures);
+        var firstSp = model.StoredProcedures[0];
+        var code = DbGenFromInfoSchema.EmitProcedure(firstSp);
+        Assert.NotEmpty(code);
+        await File.WriteAllTextAsync("Sp.sql", code);
     }
 }
