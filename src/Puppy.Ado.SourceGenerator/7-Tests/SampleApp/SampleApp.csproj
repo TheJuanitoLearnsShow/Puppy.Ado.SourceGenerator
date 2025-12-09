@@ -6,15 +6,16 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+
+        <DbGen_EnableLiveSchema>true</DbGen_EnableLiveSchema>
+        <DbGen_ConnectionString>Data Source=.\sqlExpress;Database=AutomatedTESTS_AdoGenerator_SampleDb;Integrated Security=True;TrustServerCertificate=True;</DbGen_ConnectionString>
+
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\Puppy.Ado.SourceGenerator\Puppy.Ado.SourceGenerator.csproj"
                         OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     </ItemGroup>
-    <PropertyGroup>
-        <DbGen_EnableLiveSchema>true</DbGen_EnableLiveSchema>
-        <DbGen_ConnectionString>Data Source=.\sqlExpress;Database=AutomatedTESTS_AdoGenerator_SampleDb;Integrated Security=True;TrustServerCertificate=True;</DbGen_ConnectionString>
-    </PropertyGroup>
+    <PropertyGroup> </PropertyGroup>
 
 </Project>

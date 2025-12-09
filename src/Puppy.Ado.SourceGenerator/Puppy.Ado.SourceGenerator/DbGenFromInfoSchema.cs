@@ -12,18 +12,17 @@ namespace Puppy.Ado.SourceGenerator
         {
             var options = context.AnalyzerConfigOptionsProvider.Select(
                 (p, _) => new GeneratorOptions(p));
-            var modelProvider = options.Select(async (o, ct) =>
+            var modelProvider = options.Select( (o, ct) =>
             {
                 if (!o.EnableLiveSchema || string.IsNullOrWhiteSpace(o.ConnectionString))
                     return null;
 
-                var reader = new SqlServerSchemaReader(o.ConnectionString!);
-                return await reader.ReadAsync(ct).ConfigureAwait(false);
+                var reader = new SqlServerSchemaReaderSync(o.ConnectionString!);
+                return reader.Read();
             });
 
-            context.RegisterSourceOutput(modelProvider, (spc, task) =>
+            context.RegisterSourceOutput(modelProvider, (spc, model) =>
             {
-                var model = task?.Result;
                 if (model is null) return;
 
                 foreach (var v in model.Views)

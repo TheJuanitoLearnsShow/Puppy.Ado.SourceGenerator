@@ -3,3 +3,9 @@ go
 
 CREATE TYPE dbo.Age from smallint not null;
 go
+
+CREATE TYPE ClassesType AS TABLE (
+                                           LocationName VARCHAR(50),
+                                           Level INT
+                                       );
+GO

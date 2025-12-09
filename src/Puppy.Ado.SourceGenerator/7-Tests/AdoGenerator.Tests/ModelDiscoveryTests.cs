@@ -14,13 +14,13 @@ public class ModelDiscoveryTests
     public async Task Test_Model()
     {
         var connStr = GetConnectionString();
-        var reader = new SqlServerSchemaReader(connStr);
-        var model = await reader.ReadAsync();
+        var reader = new SqlServerSchemaReaderSync(connStr);
+        var model = reader.Read();
         Assert.NotNull(model);
         Assert.NotEmpty(model.StoredProcedures);
         var firstSp = model.StoredProcedures[0];
         var code = DbGenFromInfoSchema.EmitProcedure(firstSp);
         Assert.NotEmpty(code);
-        await File.WriteAllTextAsync("Sp.sql", code);
+        await File.WriteAllTextAsync("Sp.cs", code);
     }
 }
