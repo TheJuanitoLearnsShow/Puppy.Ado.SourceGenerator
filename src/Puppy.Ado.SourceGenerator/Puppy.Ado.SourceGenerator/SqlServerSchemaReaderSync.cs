@@ -162,7 +162,7 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
                         ? $"[{udtSchema}].[{udtName}]"
                         : null,
                 };
-                newParameter.ClrName = ClrTypeMapper.ToClrType(newParameter.SqlType, newParameter.IsNullable, conn);
+                newParameter.ClrName = ClrTypeMapper.ToClrType(newParameter.SqlType, newParameter.IsNullable, conn.ConnectionString);
                 list.Add(newParameter);
             }
 

@@ -11,7 +11,7 @@ namespace Puppy.Ado.SourceGenerator
 {
     public static class ClrTypeMapper
     {
-        public static string ToClrType(SqlType sqlType, bool nullable, SqlConnection? connection = null)
+        public static string ToClrType(SqlType sqlType, bool nullable, string? connectionString = null)
         {
             var t = sqlType.Name.ToLowerInvariant();
             string typeName;
@@ -56,10 +56,10 @@ namespace Puppy.Ado.SourceGenerator
             switch (typeName)
             {
                 // If fallback and a connection string is provided, try to resolve a table type (TVP) to a named tuple
-                case "unknown" when connection != null:
+                case "unknown" when !string.IsNullOrWhiteSpace(connectionString):
                     try
                     {
-                        var tuple = GetNamedTupleForTableType(sqlType.Name, connection);
+                        var tuple = GetNamedTupleForTableType(sqlType.Name, connectionString);
                         if (!string.IsNullOrEmpty(tuple))
                         {
                             // ValueTuple types are structs; treat as value type so nullable handling is consistent
@@ -67,9 +67,10 @@ namespace Puppy.Ado.SourceGenerator
                             isValueType = true;
                         }
                     }
-                    catch
+                    catch(Exception exn)
                     {
                         // swallow errors and fall back to "string"
+                        var error = exn.Message;
                     }
 
                     break;
@@ -84,7 +85,7 @@ namespace Puppy.Ado.SourceGenerator
             return nullable && isValueType ? typeName + "?" : typeName;
         }
 
-        private static string GetNamedTupleForTableType(string fullTypeName, SqlConnection connection)
+        private static string GetNamedTupleForTableType(string fullTypeName, string connectionString)
         {
             // Parse optional schema: "schema.TypeName" or "TypeName"
             var schema = "dbo";
@@ -107,11 +108,12 @@ ORDER BY c.column_id;";
 
             var columns = new List<(string ColumnName, string SqlType, bool IsNullable)>();
 
-            using (var cmd = new SqlCommand(sql, connection))
+            using (var conn = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(new SqlParameter("@typeName", SqlDbType.NVarChar) { Value = typeName });
                 cmd.Parameters.Add(new SqlParameter("@schema", SqlDbType.NVarChar) { Value = schema });
-                
+                conn.Open();
                 using var rdr = cmd.ExecuteReader();
                 while (rdr.Read())
                 {
@@ -154,6 +156,7 @@ ORDER BY c.column_id;";
             var t = sqlTypeName.ToLowerInvariant();
             var (typeName, isValueType) = t switch
             {
+                "smallint" => ("short", true),
                 "int" => ("int", true),
                 "bigint" => ("long", true),
                 "bit" => ("bool", true),
