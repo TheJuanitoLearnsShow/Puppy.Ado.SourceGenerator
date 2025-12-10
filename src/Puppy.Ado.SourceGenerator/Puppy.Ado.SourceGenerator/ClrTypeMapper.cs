@@ -19,6 +19,8 @@ namespace Puppy.Ado.SourceGenerator
 
             switch (t)
             {
+                case "smallint":
+                    typeName = "short"; isValueType = true; break;
                 case "int":
                     typeName = "int"; isValueType = true; break;
                 case "bigint":

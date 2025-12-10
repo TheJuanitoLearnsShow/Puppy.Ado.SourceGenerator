@@ -365,7 +365,8 @@ ORDER BY ORDINAL_POSITION";
 
         private static SqlType MapSqlType(string dataType, int? len, int? prec, int? scale)
         {
-            return dataType.ToLowerInvariant() switch
+            var lowerName = dataType.ToLowerInvariant();
+            return lowerName switch
             {
                 "int" => SqlType.Int(),
                 "bigint" => SqlType.BigInt(),
@@ -383,7 +384,7 @@ ORDER BY ORDINAL_POSITION";
                 "nvarchar" => SqlType.NVarChar(len ?? -1),
                 "nchar" => SqlType.NChar(len ?? 1),
                 "xml" => SqlType.Xml(),
-                _ => SqlType.VarChar(len ?? -1) // fallback
+                _ => SqlType.RawType(lowerName) // fallback
             };
         }
 
@@ -423,6 +424,7 @@ ORDER BY ORDINAL_POSITION";
             }
             return t switch
             {
+                "smallint" => SqlType.Int(),
                 "int" => SqlType.Int(),
                 "bigint" => SqlType.BigInt(),
                 "bit" => SqlType.Bit(),

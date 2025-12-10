@@ -13,6 +13,7 @@ namespace Puppy.Ado.SourceGenerator
 
     public abstract record SqlType(string Name, bool HasLength, int? Length, int? Precision, int? Scale)
     {
+        public static SqlType RawType(string rawName) => new Simple(rawName);
         public static SqlType Int() => new Simple("int");
         public static SqlType BigInt() => new Simple("bigint");
         public static SqlType Bit() => new Simple("bit");
