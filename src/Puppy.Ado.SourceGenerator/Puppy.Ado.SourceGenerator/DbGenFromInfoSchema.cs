@@ -117,7 +117,7 @@ public partial class {v.ClrName}_ViewClient
             var inputDtoName = $"{p.ClrName}_Input";
             var outputDtoName = $"{p.ClrName}_Row";
             var paramProps = string.Join("\n", p.Parameters.Select(par =>
-                $"    public {ClrTypeMapper.ToClrType(par.SqlType, par.IsNullable)} {ToPascal(TrimAt(par.Name))} {{ get; init; }}"));
+                $"    public {par.ClrName} {ToPascal(TrimAt(par.Name))} {{ get; init; }}"));
 
             var addParams = string.Join("\n", p.Parameters.Select(par =>
                 par.IsTableValued && par.TableTypeFullName is not null

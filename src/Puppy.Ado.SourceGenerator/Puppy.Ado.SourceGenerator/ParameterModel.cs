@@ -8,5 +8,7 @@
         public bool IsNullable { get; set; }
         public bool IsTableValued { get; set; }
         public string? TableTypeFullName { get; set; }
+
+        public string ClrName { get; set; }
     }
 }

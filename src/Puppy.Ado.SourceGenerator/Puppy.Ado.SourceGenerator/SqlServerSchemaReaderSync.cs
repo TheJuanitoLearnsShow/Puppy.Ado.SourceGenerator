@@ -149,7 +149,7 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
                     // || (udtSchema is not null && udtName is not null);
                     ;
 
-                list.Add(new ParameterModel
+                var newParameter = new ParameterModel
                 {
                     Name = reader.GetString(0),
                     SqlType = isStructured && udtSchema is not null && udtName is not null
@@ -158,8 +158,12 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
                     IsOutput = isOutput,
                     IsNullable = false,
                     IsTableValued = isStructured,
-                    TableTypeFullName = isStructured && udtSchema is not null && udtName is not null ? $"[{udtSchema}].[{udtName}]" : null
-                });
+                    TableTypeFullName = isStructured && udtSchema is not null && udtName is not null
+                        ? $"[{udtSchema}].[{udtName}]"
+                        : null,
+                };
+                newParameter.ClrName = ClrTypeMapper.ToClrType(newParameter.SqlType, newParameter.IsNullable, conn);
+                list.Add(newParameter);
             }
 
             return list;
