@@ -357,7 +357,7 @@ public static partial class {f.ClrName}_FunctionClient
                 global.TryGetValue("build_property.DbGen_EnableLiveSchema", out var enable);
                 global.TryGetValue("build_property.DbGen_ConnectionString", out var conn);
                 EnableLiveSchema = bool.TryParse(enable, out var b) && b;
-                ConnectionString = conn;
+                ConnectionString = conn?.Replace('|', ';'); 
             }
         }
 

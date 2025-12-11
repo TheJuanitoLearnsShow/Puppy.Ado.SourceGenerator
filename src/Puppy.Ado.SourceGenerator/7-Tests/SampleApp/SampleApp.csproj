@@ -8,7 +8,7 @@
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 
         <DbGen_EnableLiveSchema>true</DbGen_EnableLiveSchema>
-        <DbGen_ConnectionString>Data Source=.\sqlExpress;Database=AutomatedTESTS_AdoGenerator_SampleDb;Integrated Security=True;TrustServerCertificate=True;</DbGen_ConnectionString>
+        <DbGen_ConnectionString>Data Source=.\sqlExpress|Database=AutomatedTESTS_AdoGenerator_SampleDb|Integrated Security=True|TrustServerCertificate=True</DbGen_ConnectionString>
         
     </PropertyGroup>
 
