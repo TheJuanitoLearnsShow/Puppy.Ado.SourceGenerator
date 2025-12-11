@@ -9,13 +9,18 @@
 
         <DbGen_EnableLiveSchema>true</DbGen_EnableLiveSchema>
         <DbGen_ConnectionString>Data Source=.\sqlExpress;Database=AutomatedTESTS_AdoGenerator_SampleDb;Integrated Security=True;TrustServerCertificate=True;</DbGen_ConnectionString>
-
+        
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Puppy.Ado.SourceGenerator\Puppy.Ado.SourceGenerator.csproj"
-                        OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+      <PackageReference Include="Puppy.Ado.SourceGenerator" Version="1.0.0" />
+<!--      <ProjectReference Include="..\..\Puppy.Ado.SourceGenerator\Puppy.Ado.SourceGenerator.csproj"-->
+<!--                        OutputItemType="Analyzer" ReferenceOutputAssembly="false"  />-->
+<!--        <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.3" OutputItemType="Analyzer" PrivateAssets="all"/>-->
     </ItemGroup>
-    <PropertyGroup> </PropertyGroup>
+    <ItemGroup>
+        <CompilerVisibleProperty Include="DbGen_EnableLiveSchema" />
+        <CompilerVisibleProperty Include="DbGen_ConnectionString" />
+    </ItemGroup>
 
 </Project>

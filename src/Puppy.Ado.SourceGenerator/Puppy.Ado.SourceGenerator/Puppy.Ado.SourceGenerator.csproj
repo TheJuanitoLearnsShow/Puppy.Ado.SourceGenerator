@@ -10,6 +10,7 @@
 <!--        <LangVersion>latest</LangVersion>-->
         <!-- 👇 We don't want to reference the source generator dll directly in consuming projects -->
         <IncludeBuildOutput>false</IncludeBuildOutput>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,12 +19,15 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
-      <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.3" PrivateAssets="all"/>
+      <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.3" PrivateAssets="all" GeneratePathProperty="true"/>
     </ItemGroup>
 
     <!-- This ensures the library will be packaged as a source generator when we use `dotnet pack` -->
     <ItemGroup>
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true"
               PackagePath="analyzers/dotnet/cs" Visible="false" />
+
+        <!-- Package the Newtonsoft.Json dependency alongside the generator assembly -->
+        <None Include="$(PkgMicrosoft_Data_SqlClient)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
 </Project>

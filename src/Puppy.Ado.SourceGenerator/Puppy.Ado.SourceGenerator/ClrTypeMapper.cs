@@ -148,7 +148,7 @@ ORDER BY c.column_id;";
                 tupleParts.Add($"{clr} {name}");
             }
 
-            return "(" + string.Join(", ", tupleParts) + ")";
+            return "(" + string.Join(", ", tupleParts) + ")[]";
         }
 
         private static string MapSqlToClr(string sqlTypeName, bool nullable)
