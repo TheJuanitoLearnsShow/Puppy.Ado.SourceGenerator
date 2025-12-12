@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/0-Dependencies/">
+    <File Path="0-Dependencies/System.Data.SqlClient.dll" />
+  </Folder>
+  <Folder Name="/5-Apps/">
+    <Project Path="5-Apps/Puppy.Ado.SourceGenerator.Tool/Puppy.Ado.SourceGenerator.Tool.csproj" />
+  </Folder>
   <Folder Name="/7-Tests/">
     <Project Path="7-Tests/AdoGenerator.Tests/AdoGenerator.Tests.csproj" />
     <Project Path="7-Tests/SampleApp/SampleApp.csproj" />

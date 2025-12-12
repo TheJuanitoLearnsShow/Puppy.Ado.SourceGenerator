@@ -1,32 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
-// C#
-namespace System.Runtime.CompilerServices
-{
-    // Minimal shim for C# 9 init-only setters when targeting older TFMs
-}
+using System.Data.SqlClient;
 
 namespace Puppy.Ado.SourceGenerator
 {
-    public sealed class SqlServerSchemaReader
+    public sealed class SqlServerSchemaReaderSync
     {
         private readonly string _connectionString;
 
-        public SqlServerSchemaReader(string connectionString) => _connectionString = connectionString;
+        public SqlServerSchemaReaderSync(string connectionString) => _connectionString = connectionString;
 
-        public async Task<DatabaseModel> ReadAsync(CancellationToken ct = default)
+        public DatabaseModel Read()
         {
             using var conn = new SqlConnection(_connectionString);
-            await conn.OpenAsync(ct).ConfigureAwait(false);
+            conn.Open();
 
-            var tableTypes = await ReadTableTypesAsync(conn, ct);
-            var procs = await ReadProceduresAsync(conn, ct);
-            var funcs = await ReadFunctionsAsync(conn, ct);
-            var views = await ReadViewsAsync(conn, ct);
+            var tableTypes = ReadTableTypes(conn);
+            var procs = ReadProcedures(conn);
+            var funcs = ReadFunctions(conn);
+            var views = ReadViews(conn);
 
             return new DatabaseModel
             {
@@ -37,7 +30,7 @@ namespace Puppy.Ado.SourceGenerator
             };
         }
 
-        private static async Task<IReadOnlyList<TableTypeModel>> ReadTableTypesAsync(SqlConnection conn, CancellationToken ct)
+        private static IReadOnlyList<TableTypeModel> ReadTableTypes(SqlConnection conn)
         {
             const string sql = @"
 SELECT s.name AS SchemaName, tt.name AS TypeName, c.name AS ColumnName, 
@@ -50,14 +43,14 @@ JOIN sys.types t ON t.user_type_id = c.user_type_id
 ORDER BY s.name, tt.name, c.column_id";
 
             using var cmd = new SqlCommand(sql, conn);
-            using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            using var reader = cmd.ExecuteReader();
 
             var list = new List<TableTypeModel>();
             TableTypeModel? current = null;
             string? prevSchema = null, prevName = null;
             var cols = new List<ResultColumnModel>();
 
-            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            while (reader.Read())
             {
                 var schema = reader.GetString(0);
                 var name = reader.GetString(1);
@@ -94,7 +87,7 @@ ORDER BY s.name, tt.name, c.column_id";
             return list;
         }
 
-        private static async Task<IReadOnlyList<StoredProcedureModel>> ReadProceduresAsync(SqlConnection conn, CancellationToken ct)
+        private static IReadOnlyList<StoredProcedureModel> ReadProcedures(SqlConnection conn)
         {
             const string procSql = @"
 SELECT SPECIFIC_SCHEMA, SPECIFIC_NAME
@@ -104,9 +97,9 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
 
             var procs = new List<StoredProcedureModel>();
             using (var cmd = new SqlCommand(procSql, conn))
-            using (var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false))
+            using (var reader = cmd.ExecuteReader())
             {
-                while (await reader.ReadAsync(ct).ConfigureAwait(false))
+                while (reader.Read())
                 {
                     procs.Add(new StoredProcedureModel
                     {
@@ -118,14 +111,14 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
 
             foreach (var p in procs)
             {
-                p.Parameters = await ReadParametersAsync(conn, p.Schema, p.Name, ct);
-                p.ResultSets = await DescribeResultSetsAsync(conn, p.Schema, p.Name, ct);
+                p.Parameters = ReadParameters(conn, p.Schema, p.Name);
+                p.ResultSets = DescribeResultSets(conn, p.Schema, p.Name);
             }
 
             return procs;
         }
 
-        private static async Task<IReadOnlyList<ParameterModel>> ReadParametersAsync(SqlConnection conn, string schema, string name, CancellationToken ct)
+        private static IReadOnlyList<ParameterModel> ReadParameters(SqlConnection conn, string schema, string name)
         {
             const string paramSql = @"
         SELECT PARAMETER_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE,
@@ -139,8 +132,8 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
             cmd.Parameters.AddWithValue("@name", name);
 
             var list = new List<ParameterModel>();
-            using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
-            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
             {
                 var dataType = reader.GetString(1);
                 var len = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2);
@@ -152,10 +145,11 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
 
                 var udtSchema = reader.IsDBNull(7) ? null : reader.GetString(7);
                 var udtName = reader.IsDBNull(8) ? null : reader.GetString(8);
-                var isStructured = string.Equals(dataType, "table type", StringComparison.OrdinalIgnoreCase) ||
-                                   (udtSchema is not null && udtName is not null);
+                var isStructured = string.Equals(dataType, "table type", StringComparison.OrdinalIgnoreCase)
+                    // || (udtSchema is not null && udtName is not null);
+                    ;
 
-                list.Add(new ParameterModel
+                var newParameter = new ParameterModel
                 {
                     Name = reader.GetString(0),
                     SqlType = isStructured && udtSchema is not null && udtName is not null
@@ -164,15 +158,19 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
                     IsOutput = isOutput,
                     IsNullable = false,
                     IsTableValued = isStructured,
-                    TableTypeFullName = isStructured && udtSchema is not null && udtName is not null ? $"[{udtSchema}].[{udtName}]" : null
-                });
+                    TableTypeFullName = isStructured && udtSchema is not null && udtName is not null
+                        ? $"[{udtSchema}].[{udtName}]"
+                        : null,
+                };
+                newParameter.ClrName = ClrTypeMapper.ToClrType(newParameter.SqlType, newParameter.IsNullable, conn.ConnectionString);
+                list.Add(newParameter);
             }
 
             return list;
         }
 
 
-        private static async Task<IReadOnlyList<ResultSetModel>> DescribeResultSetsAsync(SqlConnection conn, string schema, string name, CancellationToken ct)
+        private static IReadOnlyList<ResultSetModel> DescribeResultSets(SqlConnection conn, string schema, string name)
         {
             // Use sys.sp_describe_first_result_set for first set; for multiple, you may add hints or instrumentation.
             using var cmd = new SqlCommand("sys.sp_describe_first_result_set", conn)
@@ -183,10 +181,10 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
 
             var sets = new List<ResultSetModel>();
             var cols = new List<ResultColumnModel>();
-            using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            using var reader = cmd.ExecuteReader();
 
             int ordinal = 0;
-            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            while (reader.Read())
             {
                 var colName = reader.IsDBNull(2) ? $"Column{ordinal}" : reader.GetString(2);
                 var sysTypeName = reader.GetString(5); // system_type_name
@@ -207,7 +205,7 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
             return sets;
         }
 
-        private static async Task<IReadOnlyList<FunctionModel>> ReadFunctionsAsync(SqlConnection conn, CancellationToken ct)
+        private static IReadOnlyList<FunctionModel> ReadFunctions(SqlConnection conn)
         {
             const string fnSql = @"
 SELECT SPECIFIC_SCHEMA, SPECIFIC_NAME, DATA_TYPE
@@ -217,9 +215,9 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
 
             var list = new List<FunctionModel>();
             using (var cmd = new SqlCommand(fnSql, conn))
-            using (var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false))
+            using (var reader = cmd.ExecuteReader())
             {
-                while (await reader.ReadAsync(ct).ConfigureAwait(false))
+                while (reader.Read())
                 {
                     var schema = reader.GetString(0);
                     var name = reader.GetString(1);
@@ -239,15 +237,15 @@ ORDER BY SPECIFIC_SCHEMA, SPECIFIC_NAME";
 
             foreach (var f in list)
             {
-                f.Parameters = await ReadFunctionParametersAsync(conn, f.Schema, f.Name, ct);
+                f.Parameters = ReadFunctionParameters(conn, f.Schema, f.Name);
                 if (f.IsTableValued)
-                    f.TableColumns = await ReadTvfColumnsAsync(conn, f.Schema, f.Name, ct);
+                    f.TableColumns = ReadTvfColumns(conn, f.Schema, f.Name);
             }
 
             return list;
         }
 
-        private static async Task<IReadOnlyList<ParameterModel>> ReadFunctionParametersAsync(SqlConnection conn, string schema, string name, CancellationToken ct)
+        private static IReadOnlyList<ParameterModel> ReadFunctionParameters(SqlConnection conn, string schema, string name)
         {
             const string paramSql = @"
 SELECT PARAMETER_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE
@@ -260,8 +258,8 @@ ORDER BY ORDINAL_POSITION";
             cmd.Parameters.AddWithValue("@name", name);
 
             var list = new List<ParameterModel>();
-            using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
-            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
             {
                 var dataType = reader.GetString(1);
                 var len = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2);
@@ -280,7 +278,7 @@ ORDER BY ORDINAL_POSITION";
             return list;
         }
 
-        private static async Task<IReadOnlyList<ResultColumnModel>> ReadTvfColumnsAsync(SqlConnection conn, string schema, string name, CancellationToken ct)
+        private static IReadOnlyList<ResultColumnModel> ReadTvfColumns(SqlConnection conn, string schema, string name)
         {
             // TVF columns are not exposed in INFORMATION_SCHEMA directly; use sys.columns by OBJECT_ID
             const string sql = @"
@@ -294,8 +292,8 @@ ORDER BY c.column_id";
             cmd.Parameters.AddWithValue("@fullName", $"[{schema}].[{name}]");
 
             var list = new List<ResultColumnModel>();
-            using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
-            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
             {
                 list.Add(new ResultColumnModel
                 {
@@ -308,7 +306,7 @@ ORDER BY c.column_id";
             return list;
         }
 
-        private static async Task<IReadOnlyList<ViewModel>> ReadViewsAsync(SqlConnection conn, CancellationToken ct)
+        private static IReadOnlyList<ViewModel> ReadViews(SqlConnection conn)
         {
             const string viewSql = @"
 SELECT TABLE_SCHEMA, TABLE_NAME
@@ -317,9 +315,9 @@ ORDER BY TABLE_SCHEMA, TABLE_NAME";
 
             var views = new List<ViewModel>();
             using (var cmd = new SqlCommand(viewSql, conn))
-            using (var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false))
+            using (var reader = cmd.ExecuteReader())
             {
-                while (await reader.ReadAsync(ct).ConfigureAwait(false))
+                while (reader.Read())
                 {
                     views.Add(new ViewModel
                     {
@@ -330,12 +328,12 @@ ORDER BY TABLE_SCHEMA, TABLE_NAME";
             }
 
             foreach (var v in views)
-                v.Columns = await ReadViewColumnsAsync(conn, v.Schema, v.Name, ct);
+                v.Columns = ReadViewColumns(conn, v.Schema, v.Name);
 
             return views;
         }
 
-        private static async Task<IReadOnlyList<ResultColumnModel>> ReadViewColumnsAsync(SqlConnection conn, string schema, string name, CancellationToken ct)
+        private static IReadOnlyList<ResultColumnModel> ReadViewColumns(SqlConnection conn, string schema, string name)
         {
             const string colSql = @"
 SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE, IS_NULLABLE, ORDINAL_POSITION
@@ -348,8 +346,8 @@ ORDER BY ORDINAL_POSITION";
             cmd.Parameters.AddWithValue("@name", name);
 
             var list = new List<ResultColumnModel>();
-            using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
-            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
             {
                 list.Add(new ResultColumnModel
                 {
@@ -367,7 +365,8 @@ ORDER BY ORDINAL_POSITION";
 
         private static SqlType MapSqlType(string dataType, int? len, int? prec, int? scale)
         {
-            return dataType.ToLowerInvariant() switch
+            var lowerName = dataType.ToLowerInvariant();
+            return lowerName switch
             {
                 "int" => SqlType.Int(),
                 "bigint" => SqlType.BigInt(),
@@ -385,7 +384,7 @@ ORDER BY ORDINAL_POSITION";
                 "nvarchar" => SqlType.NVarChar(len ?? -1),
                 "nchar" => SqlType.NChar(len ?? 1),
                 "xml" => SqlType.Xml(),
-                _ => SqlType.VarChar(len ?? -1) // fallback
+                _ => SqlType.RawType(lowerName) // fallback
             };
         }
 
@@ -425,6 +424,7 @@ ORDER BY ORDINAL_POSITION";
             }
             return t switch
             {
+                "smallint" => SqlType.Int(),
                 "int" => SqlType.Int(),
                 "bigint" => SqlType.BigInt(),
                 "bit" => SqlType.Bit(),
@@ -460,3 +460,4 @@ ORDER BY ORDINAL_POSITION";
         }
     }
 }
+
