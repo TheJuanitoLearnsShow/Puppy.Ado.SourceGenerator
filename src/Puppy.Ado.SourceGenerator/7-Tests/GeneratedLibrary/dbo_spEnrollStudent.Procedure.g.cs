@@ -5,7 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 public sealed class dbo_spEnrollStudent_Input
 {
@@ -47,7 +47,7 @@ public partial class dbo_spEnrollStudent_ProcClient
         cmd.CommandText = "[dbo].[spEnrollStudent]";
         cmd.CommandType = CommandType.StoredProcedure;
 
-        AddParam(cmd, "@FirstName", System.Data.SqlDbType.VarChar, input.FirstName, false);
+        AddParam(cmd, "@FirstName", SqlDbType.VarChar, input.FirstName, false);
         AddParam(cmd, "@LastName", System.Data.SqlDbType.VarChar, input.LastName, false);
         AddParam(cmd, "@Age", System.Data.SqlDbType.SmallInt, input.Age, false);
         cmd.Parameters.Add(ToTvp("@ClassesToEnroll", "[dbo].[ClassesType]", input.ClassesToEnroll));
@@ -66,7 +66,7 @@ public partial class dbo_spEnrollStudent_ProcClient
             {
                 FirstName = reader.IsDBNull(0) ? null : reader.GetString(0),
                 LastName = reader.IsDBNull(1) ? null : reader.GetString(1),
-                Age = reader.IsDBNull(2) ? default(int?) : reader.GetInt32(2),
+                Age = reader.IsDBNull(2) ? default(int?) : reader.GetInt32(2), // TODO: chg generator to use int16 here: 
             });
         }
         if (existingConnection == null)
@@ -88,12 +88,15 @@ public partial class dbo_spEnrollStudent_ProcClient
         cmd.Parameters.Add(p);
     }
 
-    private static SqlParameter ToTvp<T>(string name, string typeName, IEnumerable<T> rows)
+    // TODO: generate a method like this for each TVP value
+    private static SqlParameter ToTvp(string name, string typeName, (string LocationName, int Level)[] rows)
     {
         var table = new System.Data.DataTable();
+        table.Columns.Add("LocationName", typeof(string));
+        table.Columns.Add("Level", typeof(int));
         // TVP DataTable columns are emitted elsewhere; customize as needed via partial hook.
         foreach (var r in rows)
-            table.Rows.Add(r); // For records/tuples; otherwise build rows explicitly.
+            table.Rows.Add(r.LocationName, r.Level);
 
         return new SqlParameter(name, SqlDbType.Structured) { TypeName = typeName, Value = table };
     }

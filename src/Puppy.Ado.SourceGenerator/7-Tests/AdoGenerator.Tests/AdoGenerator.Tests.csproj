@@ -23,6 +23,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Puppy.Ado.SourceGenerator\Puppy.Ado.SourceGenerator.csproj" />
+      <ProjectReference Include="..\GeneratedLibrary\GeneratedLibrary.csproj" />
     </ItemGroup>
 
 </Project>
