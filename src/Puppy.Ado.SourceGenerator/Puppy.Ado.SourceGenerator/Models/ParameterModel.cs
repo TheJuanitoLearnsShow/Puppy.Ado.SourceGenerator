@@ -1,4 +1,4 @@
-﻿namespace Puppy.Ado.SourceGenerator
+﻿namespace Puppy.Ado.SourceGenerator.Models
 {
     public sealed class ParameterModel
     {

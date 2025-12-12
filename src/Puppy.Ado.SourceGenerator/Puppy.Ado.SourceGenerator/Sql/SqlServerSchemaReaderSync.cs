@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Puppy.Ado.SourceGenerator.Models;
 
 namespace Puppy.Ado.SourceGenerator
 {

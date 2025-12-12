@@ -35,11 +35,6 @@
                 <None Include="$(PkgSystem_Data_SqlClient)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 <!--        <None Include="$(PkgMicrosoft_Data_SqlClient)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />-->
     </ItemGroup>
-    <ItemGroup>
-<!--      <Reference Include="System.Data.SqlClient">-->
-<!--        <HintPath>..\0-Dependencies\System.Data.SqlClient.dll</HintPath>-->
-<!--      </Reference>-->
-    </ItemGroup>
 <!--    <Target Name="CopyDependencies" AfterTargets="Build">-->
 <!--        <Copy SourceFiles="@(ReferenceCopyLocalPaths)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />-->
 <!--    </Target>-->

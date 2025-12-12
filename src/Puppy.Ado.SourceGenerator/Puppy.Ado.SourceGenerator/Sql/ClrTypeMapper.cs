@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Data.SqlClient;
+using Puppy.Ado.SourceGenerator.Models;
 
 namespace Puppy.Ado.SourceGenerator
 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Puppy.Ado.SourceGenerator.Models;
 
 namespace Puppy.Ado.SourceGenerator
 {
