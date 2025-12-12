@@ -10,17 +10,11 @@ var outputFolder = GetOutputFolder();
 var reader = new SqlServerSchemaReaderSync(connStr);
 var model = reader.Read();
 
-foreach (var v in model.Views)
-{
-    OutputFile($"{v.ClrName}.View.g.cs", SqlModelTextMapper.EmitView(v));
+var writeTasks = model.Views.Select(v => OutputFile($"{v.ClrName}.View.g.cs", SqlModelTextMapper.EmitView(v)))
+    .Concat(model.Functions.Select(f => OutputFile($"{f.ClrName}.Function.g.cs", SqlModelTextMapper.EmitFunction(f))))
+    .Concat(model.StoredProcedures.Select(p => OutputFile($"{p.ClrName}.Procedure.g.cs", SqlModelTextMapper.EmitProcedure(p))));
 
-}
-
-foreach (var f in model.Functions)
-    spc.AddSource($"{f.ClrName}.Function.g.cs", SqlModelTextMapper.EmitFunction(f));
-
-foreach (var p in model.StoredProcedures)
-    spc.AddSource($"{p.ClrName}.Procedure.g.cs", SqlModelTextMapper.EmitProcedure(p));
+await Task.WhenAll(writeTasks);
 
 string GetConnectionString()
 {
@@ -31,9 +25,11 @@ string GetConnectionString()
 string GetOutputFolder()
 {
     var folder = args.Length > 1 ? args[1] : Environment.GetEnvironmentVariable("OUTPUT_FOLDER");
+    return folder ?? Directory.GetCurrentDirectory();
 }
 
-void OutputFile(string fileName, string emitView)
+Task OutputFile(string fileName, string emitView)
 {
-    throw new NotImplementedException();
+    var finalePath = Path.Combine(outputFolder, fileName);
+    return File.WriteAllTextAsync(finalePath, emitView);
 }

@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/7-Tests/">
     <Project Path="7-Tests/AdoGenerator.Tests/AdoGenerator.Tests.csproj" />
+    <Project Path="7-Tests/GeneratedLibrary/GeneratedLibrary.csproj" />
     <Project Path="7-Tests/SampleApp/SampleApp.csproj" />
     <Project Path="7-Tests/SampleDb/SampleDb.sqlproj" Type="42ea0dbd-9cf1-443e-919e-be9c484e4577" />
   </Folder>

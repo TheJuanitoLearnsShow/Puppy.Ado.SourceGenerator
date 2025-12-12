@@ -9,6 +9,10 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Puppy.Ado.SourceGenerator\Puppy.Ado.SourceGenerator.csproj" />
+        <PackageReference Include="System.Data.SqlClient" Version="4.9.0"
+                          PrivateAssets="all" GeneratePathProperty="true"
+                          CopyLocalSatelliteAssemblies="true"
+        />
     </ItemGroup>
 
 </Project>

@@ -1,0 +1,10 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Puppy.Ado.SourceGenerator.Tool": {
+      "commandName": "Project",
+      "commandLineArgs": "\"Data Source=.\\sqlExpress;Database=AutomatedTESTS_AdoGenerator_SampleDb;Integrated Security=True;TrustServerCertificate=True;\" ",
+      "workingDirectory": "$(SolutionDir)7-Tests/GeneratedLibrary"
+    }
+  }
+}

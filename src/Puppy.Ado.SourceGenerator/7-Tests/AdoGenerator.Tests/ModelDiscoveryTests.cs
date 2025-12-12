@@ -19,7 +19,7 @@ public class ModelDiscoveryTests
         Assert.NotNull(model);
         Assert.NotEmpty(model.StoredProcedures);
         var firstSp = model.StoredProcedures[0];
-        var code = DbGenFromInfoSchema.EmitProcedure(firstSp);
+        var code = SqlModelTextMapper.EmitProcedure(firstSp);
         Assert.NotEmpty(code);
         await File.WriteAllTextAsync("Sp.cs", code);
     }

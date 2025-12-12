@@ -27,6 +27,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 
 public sealed class {dtoName}
 {{
@@ -130,7 +131,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 public sealed class {inputDtoName}
 {{
@@ -154,7 +155,6 @@ public partial class {p.ClrName}_ProcClient
     }}
 
     public async Task<List<{(hasResult is null ? "object" : outputDtoName)}>> ExecuteAsync(
-        DbConnection connection,
         {inputDtoName} input,
         DbConnection? existingConnection = null,
         CancellationToken ct = default)
@@ -232,6 +232,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 
 public sealed class {inputDtoName}
 {{
