@@ -425,7 +425,7 @@ ORDER BY ORDINAL_POSITION";
             }
             return t switch
             {
-                "smallint" => SqlType.Int(),
+                "smallint" => SqlType.SmallInt(),
                 "int" => SqlType.Int(),
                 "bigint" => SqlType.BigInt(),
                 "bit" => SqlType.Bit(),

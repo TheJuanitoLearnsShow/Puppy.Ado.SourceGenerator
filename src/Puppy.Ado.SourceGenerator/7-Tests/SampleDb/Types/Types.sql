@@ -3,6 +3,8 @@ go
 
 CREATE TYPE dbo.Age from smallint not null;
 go
+CREATE TYPE dbo.GPA from numeric(3,2) not null;
+go
 
 CREATE TYPE ClassesType AS TABLE (
                                            LocationName VARCHAR(50) not null,

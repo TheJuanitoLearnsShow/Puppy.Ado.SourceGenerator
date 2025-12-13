@@ -31,7 +31,7 @@ namespace Puppy.Ado.SourceGenerator
                     spc.AddSource($"{f.ClrName}.Function.g.cs", SqlModelTextMapper.EmitFunction(f));
 
                 foreach (var p in model.StoredProcedures)
-                    spc.AddSource($"{p.ClrName}.Procedure.g.cs", SqlModelTextMapper.EmitProcedure(p));
+                    spc.AddSource($"{p.ClrName}.Procedure.g.cs", StoreProcedureTextGenerator.EmitProcedure(p));
             });
         }
 

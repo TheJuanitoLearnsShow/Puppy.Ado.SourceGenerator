@@ -12,7 +12,7 @@ var model = reader.Read();
 
 var writeTasks = model.Views.Select(v => OutputFile($"{v.ClrName}.View.g.cs", SqlModelTextMapper.EmitView(v)))
     .Concat(model.Functions.Select(f => OutputFile($"{f.ClrName}.Function.g.cs", SqlModelTextMapper.EmitFunction(f))))
-    .Concat(model.StoredProcedures.Select(p => OutputFile($"{p.ClrName}.Procedure.g.cs", SqlModelTextMapper.EmitProcedure(p))));
+    .Concat(model.StoredProcedures.Select(p => OutputFile($"{p.ClrName}.Procedure.g.cs", StoreProcedureTextGenerator.EmitProcedure(p))));
 
 await Task.WhenAll(writeTasks);
 

@@ -12,6 +12,7 @@ public sealed class dbo_spEnrollStudent_Input
     public string FirstName { get; init; }
     public string LastName { get; init; }
     public short Age { get; init; }
+    public decimal GPA { get; init; }
     public (string LocationName, int Level)[] ClassesToEnroll { get; init; }
 }
 
@@ -19,7 +20,8 @@ public sealed class dbo_spEnrollStudent_Row
 {
     public string FirstName { get; init; }
     public string LastName { get; init; }
-    public int? Age { get; init; }
+    public short? Age { get; init; }
+    public decimal? GPA { get; init; }
 }
 
 public partial class dbo_spEnrollStudent_ProcClient
@@ -47,10 +49,11 @@ public partial class dbo_spEnrollStudent_ProcClient
         cmd.CommandText = "[dbo].[spEnrollStudent]";
         cmd.CommandType = CommandType.StoredProcedure;
 
-        AddParam(cmd, "@FirstName", SqlDbType.VarChar, input.FirstName, false);
+        AddParam(cmd, "@FirstName", System.Data.SqlDbType.VarChar, input.FirstName, false);
         AddParam(cmd, "@LastName", System.Data.SqlDbType.VarChar, input.LastName, false);
         AddParam(cmd, "@Age", System.Data.SqlDbType.SmallInt, input.Age, false);
-        cmd.Parameters.Add(ToTvp("@ClassesToEnroll", "[dbo].[ClassesType]", input.ClassesToEnroll));
+        AddParam(cmd, "@GPA", System.Data.SqlDbType.Decimal, input.GPA, false);
+        cmd.Parameters.Add(ToTvpClassesToEnroll("@ClassesToEnroll", "[dbo].[ClassesType]", input.ClassesToEnroll));
 
         OnBeforeExecute?.Invoke(cmd);
 
@@ -66,7 +69,8 @@ public partial class dbo_spEnrollStudent_ProcClient
             {
                 FirstName = reader.IsDBNull(0) ? null : reader.GetString(0),
                 LastName = reader.IsDBNull(1) ? null : reader.GetString(1),
-                Age = reader.IsDBNull(2) ? default(int?) : reader.GetInt32(2), // TODO: chg generator to use int16 here: 
+                Age = reader.IsDBNull(2) ? default(short?) : reader.GetInt16(2),
+                GPA = reader.IsDBNull(3) ? default(decimal?) : reader.GetDecimal(3),
             });
         }
         if (existingConnection == null)
@@ -88,16 +92,18 @@ public partial class dbo_spEnrollStudent_ProcClient
         cmd.Parameters.Add(p);
     }
 
-    // TODO: generate a method like this for each TVP value
-    private static SqlParameter ToTvp(string name, string typeName, (string LocationName, int Level)[] rows)
-    {
-        var table = new System.Data.DataTable();
-        table.Columns.Add("LocationName", typeof(string));
-        table.Columns.Add("Level", typeof(int));
-        // TVP DataTable columns are emitted elsewhere; customize as needed via partial hook.
-        foreach (var r in rows)
-            table.Rows.Add(r.LocationName, r.Level);
+    
+        private static SqlParameter ToTvpClassesToEnroll(string name,
+            string typeName,
+            IEnumerable<(string LocationName, int Level)[]> rows)
+        {
+            var table = new System.Data.DataTable();
+             table.Columns.Add("LocationName", typeof(string));
+ table.Columns.Add("Level)[]", typeof(int));
+            foreach (var r in rows)
+                table.Rows.Add(r); // For records/tuples; otherwise build rows explicitly.
 
-        return new SqlParameter(name, SqlDbType.Structured) { TypeName = typeName, Value = table };
-    }
+            return new SqlParameter(name, SqlDbType.Structured) { TypeName = typeName, Value = table };
+        }        
+
 }
