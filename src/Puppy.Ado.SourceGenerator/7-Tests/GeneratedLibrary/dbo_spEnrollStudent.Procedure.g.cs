@@ -95,14 +95,15 @@ public partial class dbo_spEnrollStudent_ProcClient
     
         private static SqlParameter ToTvpClassesToEnroll(string name,
             string typeName,
-            IEnumerable<(string LocationName, int Level)[]> rows)
+            (string LocationName, int Level)[] rows)
         {
             var table = new System.Data.DataTable();
-             table.Columns.Add("LocationName", typeof(string));
- table.Columns.Add("Level)[]", typeof(int));
-            foreach (var r in rows)
-                table.Rows.Add(r); // For records/tuples; otherwise build rows explicitly.
-
+            table.Columns.Add("LocationName", typeof(string));
+            table.Columns.Add("Level", typeof(int));
+            foreach (var r in rows) 
+            {
+                table.Rows.Add(r.LocationName, r.Level); 
+            }
             return new SqlParameter(name, SqlDbType.Structured) { TypeName = typeName, Value = table };
         }        
 

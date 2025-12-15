@@ -161,9 +161,15 @@ public partial class {p.ClrName}_ProcClient
 
         private static string GenerateTableValueParamMapMethod(string paramName, string clrType)
         {
-            var columnsToAdd = clrType.Trim().Trim(']').Trim('[').Trim('(',')').Split(',')
+            var columns = clrType.Trim().Trim(']').Trim('[').Trim('(', ')').Split(',')
                 .Select(tupleTypePart => tupleTypePart.Trim().Split(' '))
-                .Select((col, idx) => $" table.Columns.Add(\"{col[1].Trim()}\", typeof({col[0].Trim().Trim('(',')')}));")
+                .Select(c => (ClrColType: c[0].Trim().Trim('(',')'),ColName: c[1].Trim()))
+                .ToArray();
+            var columnsToAdd = columns
+                .Select((col) => $"            table.Columns.Add(\"{col.ColName}\", typeof({col.ClrColType}));")
+                .ToArray();
+            var valuesToAdd = columns
+                .Select((col) => $"r.{col.ColName}")
                 .ToArray();
             return
 $@"
@@ -172,10 +178,11 @@ $@"
             {clrType} rows)
         {{
             var table = new System.Data.DataTable();
-            {string.Join("\n", columnsToAdd)}
-            foreach (var r in rows)
-                table.Rows.Add(r); // For records/tuples; otherwise build rows explicitly.
-
+{string.Join("\n", columnsToAdd)}
+            foreach (var r in rows) 
+            {{
+                table.Rows.Add({string.Join(", ", valuesToAdd)}); 
+            }}
             return new SqlParameter(name, SqlDbType.Structured) {{ TypeName = typeName, Value = table }};
         }}        
 ";
